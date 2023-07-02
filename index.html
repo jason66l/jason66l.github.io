@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="js/pixi.min.js"></script>
+</head>
+<body>
+    <script>
+        let scoreCounter = 0;
+        let timerCounter = 60;
+        
+
+        const Application = PIXI.Application;
+        const app = new Application({
+            width: 800,
+            height: 600,
+            backgroundColor: 0xAAAAAA,
+        });
+
+        app.renderer.resize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(app.view);
+
+        const playerSprite = PIXI.Sprite.from("images/man.png");
+        playerSprite.scale.set(0.20, 0.20);
+        playerSprite.anchor.x = 0.5;
+        playerSprite.anchor.y = 1.4;
+        playerSprite.position.set(app.view.width / 2, app.view.height);
+
+        app.stage.addChild(playerSprite);
+
+        window.interactive = true;
+
+        window.addEventListener('pointerdown', function (event) {
+            const touchX = event.clientX;
+
+            if (touchX < playerSprite.position.x) {
+                playerSprite.position.x -= 50;
+            } else {
+                playerSprite.position.x += 50;
+            }
+        });
+
+        // Score related
+        const scoreDisplay = new PIXI.Text("Score: " + scoreCounter.toString());
+        scoreDisplay.position.set(10, 10); // Set the position of the score display
+        app.stage.addChild(scoreDisplay);
+
+        // Timer related
+        const timerDisplay = new PIXI.Text("Time: " + timerCounter.toString());
+        timerDisplay.position.set(10, 40); // Set the position of the timer display
+        app.stage.addChild(timerDisplay);
+
+        const objectContainer = new PIXI.Container();
+        app.stage.addChild(objectContainer);
+
+        function createFallingObject() {
+            const object = PIXI.Sprite.from("images/apple.png");
+
+            object.scale.set(0.2);
+            object.anchor.set(0.5, 0);
+            object.position.set(Math.random() * app.view.width, 0);
+            objectContainer.addChild(object);
+
+            const speed = 2 + Math.random() * 4; // Adjust the speed as needed
+
+            // Animation function for each frame
+            function animate() {
+                object.position.y += speed;
+
+                // Check if the object collides with the player sprite
+                const objectBounds = object.getBounds();
+                const playerBounds = playerSprite.getBounds();
+                const doCollide = objectBounds.intersects(playerBounds);
+
+                if (doCollide) {
+                    objectContainer.removeChild(object);
+                    app.ticker.remove(animate);
+                    scoreCounter += 1;
+                    scoreDisplay.text = "Score: " + scoreCounter.toString();
+                }
+
+                // Check if the object is off the screen
+                if (object.position.y > app.view.height) {
+                    objectContainer.removeChild(object);
+                    app.ticker.remove(animate);
+                }
+            }
+
+            app.ticker.add(animate);
+        }
+
+        // Function to create falling objects periodically
+        function createObjectsPeriodically() {
+            const interval = 1000; // Time interval between object creation (in milliseconds)
+            setInterval(createFallingObject, interval);
+        }
+
+        // Timer update function
+        function update() {
+            timerCounter -= 1;
+            timerDisplay.text = "Time: " + timerCounter.toString();
+                
+            if(timerCounter<0){    
+                
+                if(scoreCounter<40){
+                        alert("You lose!");
+                    }
+
+                else{
+                    alert("You win!");
+                    }
+                }
+        }
+
+        function gameManager(){
+
+            if (timerCounter > 0){
+                createObjectsPeriodically();
+                setInterval(update, 1000);
+
+            }
+
+        }
+
+
+        gameManager();
+    </script>
+</body>
+</html>
