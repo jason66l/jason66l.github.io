@@ -11,7 +11,6 @@
         let scoreCounter = 0;
         let timerCounter = 60;
         let gameStatus = true;
-        
 
         const Application = PIXI.Application;
         const app = new Application({
@@ -61,42 +60,27 @@
 
         function createFallingObject() {
             const object = PIXI.Sprite.from("images/apple.png");
-            const sub = PIXI.Sprite.from("images/submarine.png");
             object.scale.set(0.2);
             object.anchor.set(0.5, 0);
             object.position.set(Math.random() * app.view.width, 0);
             objectContainer.addChild(object);
-
-
-            sub.scale.set(0.2);
-            sub.anchor.set(0.5, -0.7);
-            sub.position.set(Math.random() * app.view.width, 0);
-            subContainer.addChild(sub);
-
 
             const speed = 2 + Math.random() * 4; // Adjust the speed as needed
 
             // Animation function for each frame
             function animate() {
                 object.position.y += speed;
-                sub.position.y += speed;
 
                 // Check if the object collides with the player sprite
                 const objectBounds = object.getBounds();
                 const playerBounds = playerSprite.getBounds();
-                const subBounds = sub.getBounds();
                 const doCollide = objectBounds.intersects(playerBounds);
-                const enemyCollide = subBounds.intersects(playerBounds);
 
                 if (doCollide) {
                     objectContainer.removeChild(object);
                     app.ticker.remove(animate);
                     scoreCounter += 1;
                     scoreDisplay.text = "Score: " + scoreCounter.toString();
-                }
-
-                if (enemyCollide){
-                    gameStatus = false;
                 }
 
                 // Check if the object is off the screen
@@ -109,43 +93,74 @@
             app.ticker.add(animate);
         }
 
+        function createFallingSub() {
+            const sub = PIXI.Sprite.from("images/submarine.png");
+            sub.scale.set(0.2);
+            sub.anchor.set(0.5, -0.7);
+            sub.position.set(Math.random() * app.view.width, 0);
+            subContainer.addChild(sub);
+
+            const speed = 2 + Math.random() * 4; // Adjust the speed as needed
+
+            // Animation function for each frame
+            function animateSub() {
+                sub.position.y += speed;
+
+                // Check if the object collides with the player sprite
+                const playerBounds = playerSprite.getBounds();
+                const subBounds = sub.getBounds();
+                const enemyCollide = subBounds.intersects(playerBounds);
+
+                if (enemyCollide) {
+                    gameStatus = false;
+                }
+
+                // Check if the object is off the screen
+                if (sub.position.y > app.view.height) {
+                    subContainer.removeChild(sub);
+                    app.ticker.remove(animateSub);
+                }
+            }
+
+            app.ticker.add(animateSub);
+        }
+
         // Function to create falling objects periodically
         function createObjectsPeriodically() {
             const interval = 1000; // Time interval between object creation (in milliseconds)
             setInterval(createFallingObject, interval);
         }
 
+        function createSubsPeriodically() {
+            const interval = 2000; // Time interval between object creation (in milliseconds)
+            setInterval(createFallingSub, interval);
+        }
+
         // Timer update function
         function update() {
             timerCounter -= 1;
             timerDisplay.text = "Time: " + timerCounter.toString();
-                
-            if(timerCounter<0){    
-                
-                if(scoreCounter<40){
-                        alert("You lose!");
-                    }
 
-                else{
+            if (timerCounter < 0) {
+                if (scoreCounter < 40) {
+                    alert("You lose!");
+                } else {
                     alert("You win!");
-                    }
                 }
+            }
 
-            if (gameStatus == false){
+            if (gameStatus === false) {
                 alert("You lose!");
             }
         }
 
-        function gameManager(){
-
-            if (timerCounter > 0){
+        function gameManager() {
+            if (timerCounter > 0) {
                 createObjectsPeriodically();
+                createSubsPeriodically();
                 setInterval(update, 1000);
-
             }
-
         }
-
 
         gameManager();
     </script>
